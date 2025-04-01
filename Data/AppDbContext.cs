@@ -20,7 +20,7 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
 
         builder.Entity<EnglishWord>(entity =>
         {
-            entity.HasIndex(e => e.Word).IsUnique();
+            entity.HasIndex(e => e.Word).HasFilter(null);
 
             entity.Property(e => e.Difficulty)
                 .HasConversion<string>();

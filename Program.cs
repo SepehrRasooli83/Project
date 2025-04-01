@@ -1,3 +1,7 @@
+using API.Repository;
+using API.Repository.Interfaces;
+using API.Service;
+using API.Service.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +53,12 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 // Configure Database Connection
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+#region Services AND Repositories
+//Services AND Repositories
+builder.Services.AddScoped<IEnglishWordRepository, EnglishWordRepository>();
+builder.Services.AddScoped<IEnglishWordService, EnglishWordService>();
+#endregion
 
 // Add Services to the Container
 builder.Services.AddControllers();
