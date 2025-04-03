@@ -11,6 +11,7 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     }
 
     public DbSet<EnglishWord> EnglishWords { get; set; }
+    public DbSet<EnglishPersianWords> PersianEnglishWordss { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
