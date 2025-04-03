@@ -1,4 +1,5 @@
-﻿using API.Repository.Interfaces;
+﻿using API.Data.Enums;
+using API.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Repository
@@ -12,6 +13,7 @@ namespace API.Repository
             _context = context;
         }
 
+        #region Add Word To Db Methods
         public async Task AddRangeAsync(IEnumerable<EnglishWord> words)
         {
             try
@@ -56,6 +58,40 @@ namespace API.Repository
 
                 throw;
             }
+        }
+        #endregion
+
+
+        public async Task<List<string>> FilterWordsByDifficultyLevel(List<string> words, DifficultyLevel difficultyLevel)
+        {
+            // Convert input words to lowercase for case-insensitive comparison
+            var normalizedWords = words.Select(w => w.ToLower().Trim()).ToList();
+
+            // Determine which difficulty levels to include based on input
+            List<DifficultyLevel> targetLevels = difficultyLevel switch
+            {
+                //if a1 or a2 selected the difficulties should be a1 - c2
+                DifficultyLevel.A1 => new() { DifficultyLevel.A1, DifficultyLevel.A2 , DifficultyLevel.B1,DifficultyLevel.B2,DifficultyLevel.C1,DifficultyLevel.C2 },
+                DifficultyLevel.A2 => new() { DifficultyLevel.A1, DifficultyLevel.A2, DifficultyLevel.B1, DifficultyLevel.B2, DifficultyLevel.C1, DifficultyLevel.C2 },
+
+                //if b1 or b2 selected teh difficulties should be b1-c2
+                DifficultyLevel.B1 => new() { DifficultyLevel.B1, DifficultyLevel.B2, DifficultyLevel.C1,DifficultyLevel.C2 },
+                DifficultyLevel.B2 => new() { DifficultyLevel.B1, DifficultyLevel.B2, DifficultyLevel.C1, DifficultyLevel.C2 },
+
+                DifficultyLevel.C1 => new() { DifficultyLevel.C1, DifficultyLevel.C2 },
+                DifficultyLevel.C2 => new() { DifficultyLevel.C1, DifficultyLevel.C2 },
+                _ => new() { difficultyLevel }
+            };
+
+            // Query database for matching words with specified difficulty levels
+            var filteredWords = await _context.EnglishWords
+                .Where(ew => normalizedWords.Contains(ew.Word.ToLower()) &&
+                             targetLevels.Contains(ew.Difficulty))
+                .Select(ew => ew.Word)
+                .Distinct() // Ensure no duplicates
+                .ToListAsync();
+
+            return filteredWords;
         }
     }
 }

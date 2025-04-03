@@ -1,9 +1,11 @@
-﻿using API.Service.Interfaces;
+﻿using API.Data.Enums;
+using API.Model.DTOs;
+using API.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    // EnglishWordController.cs
     [ApiController]
     [Route("api/[controller]")]
     public class EnglishWordController : ControllerBase
@@ -14,6 +16,30 @@ namespace API.Controllers
         {
             _englishWordService = importService;
         }
+
+        [HttpPost("process-file")]
+        [Consumes("multipart/form-data")]
+        [Produces("application/pdf")]
+        public async Task<IActionResult> ReturnImportantFilesBasedOnDifficultyLevel([FromForm] ProcessPdfInput input)
+        {
+            try
+            {
+                if (input.File == null || input.File.Length == 0)
+                {
+                    return BadRequest("No PDF file uploaded");
+                }
+
+                byte[] pdfBytes = await _englishWordService.ReturnImportantFilesBasedOnDifficultyLevel(input.File,input.DifficultyLevel);
+
+                // Return the file
+                return File(pdfBytes, "application/pdf", $"processed-{input.DifficultyLevel}.pdf");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error processing file: {ex.Message}");
+            }
+        }
+
 
         [HttpPost("import-csv")]
         [Consumes("multipart/form-data")]
